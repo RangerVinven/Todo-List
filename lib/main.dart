@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
+import 'package:todo_list/Task.dart';
 
 void main() {
   runApp(MaterialApp(home: Home()));
@@ -12,10 +13,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  List<String> tasks = ["Make lunch", "Revise", "Program"];
-
-  // Text controller for task name
-  TextEditingController taskController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +37,7 @@ class TodoList extends StatefulWidget {
 
 class _TodoListState extends State<TodoList> {
 
-  List<String> tasks = ["Make lunch", "Revise", "Program"];
+  List<Task> tasks = [Task("Make lunch"), Task("Revise"), Task("Program")];
 
   // Text controller for task name
   TextEditingController taskController = TextEditingController();
@@ -67,19 +64,29 @@ class _TodoListState extends State<TodoList> {
             ),
             TextButton(
                 onPressed: () {
-                  // Tells the user if the task exists, otherwise, updates the state
-                  if(!tasks.contains(taskController.text)) {
+
+                  bool isFound = false;
+
+                  // Checks if the task is already in the list
+                  tasks.forEach((task) {
+                    if(task.taskName == taskController.text) {
+
+                      isFound = true;
+                      // Alerts the user if the task has already been entered
+                      Alert(
+                          context: context,
+                          title: "Task already entered",
+                          desc: "You have already entered that task"
+                      ).show();
+                    }
+                  });
+
+                  // Adds the task to the state if it's not found
+                  if(!isFound) {
                     setState(() {
-                      tasks.add(taskController.text);
+                      tasks.add(Task(taskController.text));
                       tasks = tasks;
                     });
-                  } else {
-                    // Alerts the user if the task has already been entered
-                    Alert(
-                      context: context,
-                      title: "Task already entered",
-                      desc: "You have already entered that task"
-                    ).show();
                   }
                 },
                 child: Text(
@@ -108,15 +115,15 @@ class _TodoListState extends State<TodoList> {
       taskRows.add(Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Text(task),
+          Text(task.taskName),
           TextButton(
             onPressed: () {
-              List<String> newTasksList = [];
+              List<Task> newTasksList = [];
 
               // Adds to newTasksList if current task isn't the one the user wants to delete
-              tasks.forEach((taskName) {
-                if(taskName != task) {
-                  newTasksList.add(taskName);
+              tasks.forEach((taskInList) {
+                if(taskInList.taskName != task.taskName) {
+                  newTasksList.add(taskInList);
                 }
               });
 
