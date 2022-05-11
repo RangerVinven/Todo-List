@@ -26,7 +26,7 @@ class _HomeState extends State<Home> {
         backgroundColor: Colors.deepPurpleAccent,
         elevation: 0,
       ),
-      body: TodoList()
+      body: ListView(children: [TodoList()],)
     );
   }
 }
@@ -74,6 +74,7 @@ class _TodoListState extends State<TodoList> {
                       tasks = tasks;
                     });
                   } else {
+                    // Alerts the user if the task has already been entered
                     Alert(
                       context: context,
                       title: "Task already entered",
