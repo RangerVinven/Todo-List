@@ -101,50 +101,103 @@ class _TodoListState extends State<TodoList> {
         ),
         SizedBox(height: 20),
         Column(
-          children: _showTasks(),
-        )
+          children: _showTasks()
+        ),
       ],
     );
   }
 
   List<Widget> _showTasks() {
+    List<Widget> newTasks = [];
 
-    List<Widget> taskRows = [];
-
-    tasks.forEach((task) => {
-      taskRows.add(Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Text(task.taskName),
-          TextButton(
-            onPressed: () {
-              List<Task> newTasksList = [];
-
-              // Adds to newTasksList if current task isn't the one the user wants to delete
-              tasks.forEach((taskInList) {
-                if(taskInList.taskName != task.taskName) {
-                  newTasksList.add(taskInList);
-                }
-              });
-
-              setState(() {
-                tasks = newTasksList;
-              });
-            },
-            child: Text(
-              "Delete",
-              style: TextStyle(
-                color: Colors.white,
-              ),
-            ),
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Colors.red),
-            ),
-          ),
-        ],
-      ))
+    tasks.forEach((task) {
+      newTasks.add(CheckboxListTile(
+        title: Text(task.taskName),
+        value: task.isCompleted,
+        secondary: IconButton(
+          icon: Icon(Icons.delete, color: Colors.red),
+          onPressed: () {
+            deleteTask(task);
+          },
+        ),
+        onChanged: (newValue) {
+          setState(() {
+            task.isCompleted = !task.isCompleted;
+          });
+        },
+      ),
+      );
     });
 
-    return taskRows;
+    return newTasks;
+
   }
+
+  // List<Widget> _showTasks() {
+  //
+  //   List<Widget> taskRows = [];
+  //
+  //   tasks.forEach((task) => {
+  //     taskRows.add(Container(
+  //       width: 200,
+  //       height: 10,
+  //       child: Row(
+  //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //         children: [
+  //           CheckboxListTile(
+  //             title: Text("Test"),
+  //             value: false,
+  //             secondary: Icon(Icons.hourglass_empty),
+  //             onChanged: (newValue) {
+  //             },
+  //           ),
+  //           // Text(task.taskName),
+  //           // TextButton(
+  //           //   onPressed: () {
+  //           //     List<Task> newTasksList = [];
+  //           //
+  //           //     // Adds to newTasksList if current task isn't the one the user wants to delete
+  //           //     tasks.forEach((taskInList) {
+  //           //       if(taskInList.taskName != task.taskName) {
+  //           //         newTasksList.add(taskInList);
+  //           //       }
+  //           //     });
+  //           //
+  //           //     setState(() {
+  //           //       tasks = newTasksList;
+  //           //     });
+  //           //   },
+  //           //   child: Text(
+  //           //     "Delete",
+  //           //     style: TextStyle(
+  //           //       color: Colors.white,
+  //           //     ),
+  //           //   ),
+  //           //   style: ButtonStyle(
+  //           //     backgroundColor: MaterialStateProperty.all(Colors.red),
+  //           //   ),
+  //           // ),
+  //         ],
+  //       ),
+  //     ))
+  //   });
+  //
+  //   return taskRows;
+  // }
+
+  void deleteTask(Task task) {
+    List<Task> newTasksList = [];
+
+      // Adds to newTasksList if current task isn't the one the user wants to delete
+      tasks.forEach((taskInList) {
+          if(taskInList.taskName != task.taskName) {
+            newTasksList.add(taskInList);
+          }
+      });
+
+      setState(() {
+        tasks = newTasksList;
+      });
+  }
+
 }
