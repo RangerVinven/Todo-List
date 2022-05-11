@@ -87,6 +87,9 @@ class _TodoListState extends State<TodoList> {
                       tasks.add(Task(taskController.text));
                       tasks = tasks;
                     });
+
+                    // Resets the input to an empty string
+                    taskController.text = "";
                   }
                 },
                 child: Text(
