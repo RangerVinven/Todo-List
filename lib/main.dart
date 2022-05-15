@@ -60,39 +60,6 @@ class _TodoListState extends State<TodoList> {
     });
   }
 
-  // For when the user presses the add button or presses submit
-  taskInsert() {
-    bool isFound = false;
-
-    // Checks if the task is already in the list
-    tasks.forEach((task) {
-      if(task.taskName == taskController.text) {
-
-        isFound = true;
-        // Alerts the user if the task has already been entered
-        Alert(
-            context: context,
-            title: "Task already entered",
-            desc: "You have already entered that task"
-        ).show();
-      }
-    });
-
-    // Adds the task to the state if it's not found
-    if(!isFound) {
-      // Adds the task to the database
-      taskSubmit(taskController.text);
-
-      setState(() {
-        tasks.add(Task(taskController.text));
-        tasks = tasks;
-      });
-
-      // Resets the input to an empty string
-      taskController.text = "";
-    }
-  }
-
   taskSubmit(String task) async {
     await dbHelper.insertTask(Task(task));
     refreshTaskList();
@@ -129,7 +96,38 @@ class _TodoListState extends State<TodoList> {
               ),
             ),
             TextButton(
-                onPressed: taskInsert(),
+                onPressed: () {
+
+                  bool isFound = false;
+
+                  // Checks if the task is already in the list
+                  tasks.forEach((task) {
+                    if(task.taskName == taskController.text) {
+
+                      isFound = true;
+                      // Alerts the user if the task has already been entered
+                      Alert(
+                          context: context,
+                          title: "Task already entered",
+                          desc: "You have already entered that task"
+                      ).show();
+                    }
+                  });
+
+                  // Adds the task to the state if it's not found
+                  if(!isFound) {
+                    // Adds the task to the database
+                    taskSubmit(taskController.text);
+
+                    setState(() {
+                      tasks.add(Task(taskController.text));
+                      tasks = tasks;
+                    });
+
+                    // Resets the input to an empty string
+                    taskController.text = "";
+                  }
+                },
                 child: const Text(
                   "Add",
                   style: TextStyle(color: Colors.white),
