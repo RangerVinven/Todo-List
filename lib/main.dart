@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:todo_list/Task.dart';
 
+import 'package:todo_list/DatabaseHelper.dart';
+
 void main() {
   runApp(MaterialApp(home: Home()));
 }
@@ -29,7 +31,7 @@ class _HomeState extends State<Home> {
 }
 
 class TodoList extends StatefulWidget {
-  const TodoList({Key? key}) : super(key: key);
+  const TodoList({Key key}) : super(key: key);
 
   @override
   State<TodoList> createState() => _TodoListState();
@@ -37,16 +39,40 @@ class TodoList extends StatefulWidget {
 
 class _TodoListState extends State<TodoList> {
 
-  List<Task> tasks = [Task("Make lunch"), Task("Revise"), Task("Program")];
+  DatabaseHelper dbHelper;
+  List<Task> tasks = [];
+  TextEditingController taskController = TextEditingController(); // Text controller for task name
 
-  // Text controller for task name
-  TextEditingController taskController = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      dbHelper = DatabaseHelper.instance;
+    });
+  }
+
+  refreshTaskList() async {
+    List<Task> tasksFromDatabase = await dbHelper.getTasks();
+    setState(() {
+      tasks = tasksFromDatabase;
+    });
+  }
+
+  taskSubmit(String task) async {
+    await dbHelper.insertTask(Task(task));
+    refreshTaskList();
+  }
+
+  deleteTaskFromDatabase(Task task) async {
+    dbHelper.deleteTask(task);
+    refreshTaskList();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -57,7 +83,7 @@ class _TodoListState extends State<TodoList> {
               child: TextField(
                 controller: taskController,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: "Task",
                 ),
               ),
@@ -83,6 +109,9 @@ class _TodoListState extends State<TodoList> {
 
                   // Adds the task to the state if it's not found
                   if(!isFound) {
+                    // Adds the task to the database
+                    taskSubmit(taskController.text);
+
                     setState(() {
                       tasks.add(Task(taskController.text));
                       tasks = tasks;
@@ -92,7 +121,7 @@ class _TodoListState extends State<TodoList> {
                     taskController.text = "";
                   }
                 },
-                child: Text(
+                child: const Text(
                   "Add",
                   style: TextStyle(color: Colors.white),
                 ),
@@ -115,7 +144,12 @@ class _TodoListState extends State<TodoList> {
 
     tasks.forEach((task) {
       newTasks.add(CheckboxListTile(
-        title: Text(task.taskName),
+        title: Text(
+          task.taskName,
+          style: TextStyle(
+            decoration: task.isCompleted ? TextDecoration.lineThrough : TextDecoration.none
+          ),
+        ),
         value: task.isCompleted,
         secondary: IconButton(
           icon: Icon(Icons.delete, color: Colors.red),
@@ -133,74 +167,24 @@ class _TodoListState extends State<TodoList> {
     });
 
     return newTasks;
-
   }
-
-  // List<Widget> _showTasks() {
-  //
-  //   List<Widget> taskRows = [];
-  //
-  //   tasks.forEach((task) => {
-  //     taskRows.add(Container(
-  //       width: 200,
-  //       height: 10,
-  //       child: Row(
-  //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //         children: [
-  //           CheckboxListTile(
-  //             title: Text("Test"),
-  //             value: false,
-  //             secondary: Icon(Icons.hourglass_empty),
-  //             onChanged: (newValue) {
-  //             },
-  //           ),
-  //           // Text(task.taskName),
-  //           // TextButton(
-  //           //   onPressed: () {
-  //           //     List<Task> newTasksList = [];
-  //           //
-  //           //     // Adds to newTasksList if current task isn't the one the user wants to delete
-  //           //     tasks.forEach((taskInList) {
-  //           //       if(taskInList.taskName != task.taskName) {
-  //           //         newTasksList.add(taskInList);
-  //           //       }
-  //           //     });
-  //           //
-  //           //     setState(() {
-  //           //       tasks = newTasksList;
-  //           //     });
-  //           //   },
-  //           //   child: Text(
-  //           //     "Delete",
-  //           //     style: TextStyle(
-  //           //       color: Colors.white,
-  //           //     ),
-  //           //   ),
-  //           //   style: ButtonStyle(
-  //           //     backgroundColor: MaterialStateProperty.all(Colors.red),
-  //           //   ),
-  //           // ),
-  //         ],
-  //       ),
-  //     ))
-  //   });
-  //
-  //   return taskRows;
-  // }
 
   void deleteTask(Task task) {
     List<Task> newTasksList = [];
 
-      // Adds to newTasksList if current task isn't the one the user wants to delete
-      tasks.forEach((taskInList) {
-          if(taskInList.taskName != task.taskName) {
-            newTasksList.add(taskInList);
-          }
-      });
+    // Adds to newTasksList if current task isn't the one the user wants to delete
+    tasks.forEach((taskInList) {
+        if(taskInList.taskName != task.taskName) {
+          newTasksList.add(taskInList);
+        }
+    });
 
-      setState(() {
-        tasks = newTasksList;
-      });
+    setState(() {
+      tasks = newTasksList;
+    });
+
+    // Deletes the task from the database
+    deleteTaskFromDatabase(task);
   }
 
 }
