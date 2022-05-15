@@ -126,7 +126,6 @@ class _TodoListState extends State<TodoList> {
                 decoration: const InputDecoration(
                   hintText: "Task",
                 ),
-                onSubmitted: taskInsert(),
               ),
             ),
             TextButton(
