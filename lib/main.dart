@@ -24,6 +24,7 @@ class _HomeState extends State<Home> {
         centerTitle: true,
         backgroundColor: Colors.deepPurpleAccent,
         elevation: 0,
+        
       ),
       body: ListView(children: [TodoList()],)
     );
@@ -49,6 +50,7 @@ class _TodoListState extends State<TodoList> {
     setState(() {
       dbHelper = DatabaseHelper.instance;
     });
+    refreshTaskList();
   }
 
   refreshTaskList() async {
@@ -58,8 +60,46 @@ class _TodoListState extends State<TodoList> {
     });
   }
 
+  // For when the user presses the add button or presses submit
+  taskInsert() {
+    bool isFound = false;
+
+    // Checks if the task is already in the list
+    tasks.forEach((task) {
+      if(task.taskName == taskController.text) {
+
+        isFound = true;
+        // Alerts the user if the task has already been entered
+        Alert(
+            context: context,
+            title: "Task already entered",
+            desc: "You have already entered that task"
+        ).show();
+      }
+    });
+
+    // Adds the task to the state if it's not found
+    if(!isFound) {
+      // Adds the task to the database
+      taskSubmit(taskController.text);
+
+      setState(() {
+        tasks.add(Task(taskController.text));
+        tasks = tasks;
+      });
+
+      // Resets the input to an empty string
+      taskController.text = "";
+    }
+  }
+
   taskSubmit(String task) async {
     await dbHelper.insertTask(Task(task));
+    refreshTaskList();
+  }
+
+  editTask(Task task) async {
+    await dbHelper.updateTask(task);
     refreshTaskList();
   }
 
@@ -86,41 +126,11 @@ class _TodoListState extends State<TodoList> {
                 decoration: const InputDecoration(
                   hintText: "Task",
                 ),
+                onSubmitted: taskInsert(),
               ),
             ),
             TextButton(
-                onPressed: () {
-
-                  bool isFound = false;
-
-                  // Checks if the task is already in the list
-                  tasks.forEach((task) {
-                    if(task.taskName == taskController.text) {
-
-                      isFound = true;
-                      // Alerts the user if the task has already been entered
-                      Alert(
-                          context: context,
-                          title: "Task already entered",
-                          desc: "You have already entered that task"
-                      ).show();
-                    }
-                  });
-
-                  // Adds the task to the state if it's not found
-                  if(!isFound) {
-                    // Adds the task to the database
-                    taskSubmit(taskController.text);
-
-                    setState(() {
-                      tasks.add(Task(taskController.text));
-                      tasks = tasks;
-                    });
-
-                    // Resets the input to an empty string
-                    taskController.text = "";
-                  }
-                },
+                onPressed: taskInsert(),
                 child: const Text(
                   "Add",
                   style: TextStyle(color: Colors.white),
@@ -160,6 +170,7 @@ class _TodoListState extends State<TodoList> {
         onChanged: (newValue) {
           setState(() {
             task.isCompleted = !task.isCompleted;
+            editTask(task);
           });
         },
       ),

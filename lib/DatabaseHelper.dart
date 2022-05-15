@@ -17,7 +17,8 @@ class DatabaseHelper {
   Database _database;
   Future<Database> get database async {
     if(_database != null) return _database;
-    _database = _initDatabase();
+    await _initDatabase();
+    print("Type: ${_database.runtimeType}");
     return _database;
   }
 
@@ -58,6 +59,11 @@ class DatabaseHelper {
   Future<void> deleteTask(Task task) async {
     Database db = await database;
     db.execute("DELETE FROM ${Task.tableName} WHERE ${Task.colTask} = '${task.taskName}'");
+  }
+
+  Future<void> updateTask(Task task) async {
+    Database db = await database;
+    db.execute("UPDATE ${Task.tableName} SET ${Task.colIsCompleted} = ${task.isCompleted ? 1 : 0} WHERE ${Task.colTask} = '${task.taskName}'");
   }
 
 }
